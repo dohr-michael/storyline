@@ -9,8 +9,6 @@ case object FindAll
 
 abstract class CrudActor[A](val clazz: Class[A]) extends Actor {
 
-  type Response[AA] = Response.Response[AA]
-
   protected def all(sender: ActorRef): Unit
 
   protected def one(id: String, sender: ActorRef): Unit

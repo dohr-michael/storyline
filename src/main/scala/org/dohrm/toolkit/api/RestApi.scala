@@ -19,8 +19,6 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
 
   import spray.json._
 
-  type Response[A] = Response.Response[A]
-
   def errorMarshaller: PartialFunction[Error, ToResponseMarshallable] = PartialFunction.empty
 
   def defaultErrorMarshaller: PartialFunction[Error, ToResponseMarshallable] = {
@@ -80,6 +78,7 @@ abstract class CrudApi[A](val clazz: Class[A], val actorRef: ActorRef)
                          (implicit ec: ExecutionContext, timeout: Timeout) extends RestApi {
 
   private implicit val classTag: ClassTag[A] = ClassTag(clazz)
+
   implicit def entityFormat: RootJsonFormat[A]
 
   val routes: Route =
