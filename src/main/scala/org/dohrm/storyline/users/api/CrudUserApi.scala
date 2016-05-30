@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
   */
 class CrudUserApi(actorRef: ActorRef)
                  (implicit ec: ExecutionContext, timeout: Timeout)
-  extends CrudApi(classOf[User], actorRef)(ec, timeout) {
+  extends CrudApi[User](actorRef) {
 
   override implicit def entityFormat: RootJsonFormat[User] = UserJson.format
 }

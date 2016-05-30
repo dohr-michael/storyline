@@ -1,44 +1,53 @@
 package org.dohrm.toolkit.actor
 
 import akka.actor.{Actor, ActorRef}
-import org.dohrm.toolkit.actor.CrudActor.{All, Create, Delete, One, Update}
+
+import scala.reflect.ClassTag
 
 
 case object FindAll
 
 
-abstract class CrudActor[A](val clazz: Class[A]) extends Actor {
+case object All
 
-  protected def all(sender: ActorRef): Unit
+case class One(id: String)
 
-  protected def one(id: String, sender: ActorRef): Unit
+case class Create[A](entity: A)
 
-  protected def create(entity: A, sender: ActorRef): Unit
+case class Update[A](id: String, entity: A)
 
-  protected def update(id: String, entity: A, sender: ActorRef): Unit
+case class Delete(id: String)
 
-  protected def delete(id: String, sender: ActorRef): Unit
+
+abstract class CrudActor[A: ClassTag] extends Actor {
+
+  protected def all: Unit
+
+  protected def one(id: String): Unit
+
+  protected def create(entity: A): Unit
+
+  protected def update(id: String, entity: A): Unit
+
+  protected def delete(id: String): Unit
+
+  protected def withClass(entity: Any)(fn: A => Unit): Unit = {
+    implicitly[ClassTag[A]].unapply(entity).fold(sender ! UnknownError) { entity =>
+      fn(entity)
+    }
+  }
 
   override def receive: Receive = {
-    case All => all(sender())
-    case One(id) => one(id, sender())
-    case Create(entity) if clazz.isInstance(entity) => create(entity.asInstanceOf[A], sender())
-    case Update(id: String, entity) if clazz.isInstance(entity) => update(id, entity.asInstanceOf[A], sender())
-    case Delete(id: String) => delete(id, sender())
+    case All => all
+    case One(id) => one(id)
+    case Create(entity) =>
+      withClass(entity) { entity =>
+        create(entity)
+      }
+    case Update(id: String, entity) =>
+      withClass(entity) { entity =>
+        update(id, entity)
+      }
+    case Delete(id: String) => delete(id)
   }
-}
-
-
-object CrudActor {
-
-  case object All
-
-  case class One(id: String)
-
-  case class Create[A](entity: A)
-
-  case class Update[A](id: String, entity: A)
-
-  case class Delete(id: String)
-
 }

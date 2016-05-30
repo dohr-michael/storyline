@@ -1,9 +1,8 @@
 package org.dohrm.toolkit.utils
 
-import org.dohrm.toolkit.context.{ConfigContext, JdbcContext}
+import org.dohrm.toolkit.context.{ConfigContext, JdbcConfig, JdbcContext}
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend
-import slick.jdbc.JdbcBackend.DatabaseDef
 
 /**
   * @author michaeldohr
@@ -18,8 +17,10 @@ trait H2Support extends JdbcContext {
     url = s"jdbc:h2://${DbConfig.getString("url")};${DbConfig.getString("options")}"
   )
 
-  override implicit def db: DatabaseDef = lazyDb
+  override implicit lazy val jdbcConfig: JdbcConfig = new JdbcConfig {
+    override def db: JdbcBackend.DatabaseDef = lazyDb
 
-  override implicit val driver: JdbcProfile = slick.driver.H2Driver
+    override val driver: JdbcProfile = slick.driver.H2Driver
+  }
 
 }

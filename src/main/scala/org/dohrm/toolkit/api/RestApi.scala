@@ -74,33 +74,31 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
 }
 
 
-abstract class CrudApi[A](val clazz: Class[A], val actorRef: ActorRef)
-                         (implicit ec: ExecutionContext, timeout: Timeout) extends RestApi {
-
-  private implicit val classTag: ClassTag[A] = ClassTag(clazz)
+abstract class CrudApi[A: ClassTag](val actorRef: ActorRef)
+                                   (implicit ec: ExecutionContext, timeout: Timeout) extends RestApi {
 
   implicit def entityFormat: RootJsonFormat[A]
 
   val routes: Route =
-    get {
-      complete((actorRef ? CrudActor.All).to[Seq[A]])
+    path(Segment) { id =>
+      get {
+        complete((actorRef ? One(id)).to[A])
+      } ~
+        put {
+          entity(as[A]) { item =>
+            complete((actorRef ? Update(id, item)).to[A])
+          }
+        } ~
+        delete {
+          complete((actorRef ? Delete(id)).toUnit)
+        }
     } ~
+      get {
+        complete((actorRef ? All).to[Seq[A]])
+      } ~
       post {
         entity(as[A]) { item =>
-          complete((actorRef ? CrudActor.Create).to[A])
+          complete((actorRef ? Create).to[A])
         }
-      } ~
-      path(Segment) { id =>
-        get {
-          complete((actorRef ? CrudActor.One(id)).to[A])
-        } ~
-          put {
-            entity(as[A]) { item =>
-              complete((actorRef ? CrudActor.Update(id, item)).to[A])
-            }
-          } ~
-          delete {
-            complete((actorRef ? CrudActor.Delete(id)).toUnit)
-          }
       }
 }

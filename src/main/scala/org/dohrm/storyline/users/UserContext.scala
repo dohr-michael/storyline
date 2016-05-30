@@ -15,9 +15,9 @@ trait UserContext {
     with JdbcContext
   =>
 
-  lazy val userRepositoryActor = as.actorOf(Props[UserRepository])
+  val userRepositoryActor = as.actorOf(Props.apply(new UserRepository()), "user-repository")
 
-  lazy val userActor = as.actorOf(
+  val userActor = as.actorOf(
     BackoffSupervisor.props(
       Props[CrudUser],
       "crud-user",

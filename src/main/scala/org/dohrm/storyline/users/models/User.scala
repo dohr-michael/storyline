@@ -26,7 +26,7 @@ object UserJson {
 trait UserDatabase {
   self: JdbcContext =>
 
-  import driver.api._
+  import jdbcConfig.driver.api._
 
   class Users(tag: Tag) extends Table[User](tag, "USERS") {
     def id = column[String]("USER_ID", O.PrimaryKey)
@@ -37,7 +37,7 @@ trait UserDatabase {
 
     def displayName = column[String]("USER_DISPLAY_NAME")
 
-    def * = (id, firstName, lastName, displayName) <>(User.tupled, User.unapply)
+    def * = (id, firstName, lastName, displayName) <> (User.tupled, User.unapply)
   }
 
 }
