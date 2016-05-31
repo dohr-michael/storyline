@@ -50,7 +50,9 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
     private def errorHandler(implicit ec: ExecutionContext): PartialFunction[Throwable, ToResponseMarshallable] = {
       case e: ClassCastException =>
         future.map {
-          case er: Error => (errorMarshaller orElse defaultErrorMarshaller) (er)
+          case er: Error =>
+            println("map to error")
+            (errorMarshaller orElse defaultErrorMarshaller) (er)
           case e =>
             println(e) // TODO add logger
             HttpResponse(StatusCodes.InternalServerError): ToResponseMarshallable
@@ -58,15 +60,21 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
     }
 
     def to[A](implicit ec: ExecutionContext, wrt: RootJsonFormat[A], tag: ClassTag[A], stc: StatusCode = StatusCodes.OK): ToResponseMarshallable = {
-      try {
-        future.mapTo[A]
-      } catch errorHandler
+      future
+        .mapTo[A]
+        .map(a => a: ToResponseMarshallable)
+        .recover {
+          errorHandler
+        }
     }
 
     def toUnit(implicit ec: ExecutionContext, tag: ClassTag[Unit], stc: StatusCode = StatusCodes.OK): ToResponseMarshallable = {
-      try {
-        future.mapTo[Unit].map(_ => unitToResponse)
-      } catch errorHandler
+      future
+        .mapTo[Unit]
+        .map(_ => unitToResponse)
+        .recover {
+          errorHandler
+        }
     }
 
   }

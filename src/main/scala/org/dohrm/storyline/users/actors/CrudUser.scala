@@ -15,11 +15,11 @@ class CrudUser extends CrudActor[User] with ActorLogging {
   }
 
   override protected def all: Unit = {
-    forwardToRepository(Seq.empty)
+    forwardToRepository(FindAll)
   }
 
   override protected def one(id: String): Unit = {
-    forwardToRepository(User("admin", "admin", "Super", "Admin"))
+    forwardToRepository(FindById(id))
   }
 
   override protected def create(entity: User): Unit = {

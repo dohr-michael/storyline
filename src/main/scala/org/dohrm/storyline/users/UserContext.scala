@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.Props
 import akka.pattern.BackoffSupervisor
-import org.dohrm.toolkit.context.{ActorContext, JdbcContext}
+import org.dohrm.toolkit.context.{FutureContext, ActorContext, JdbcContext}
 import org.dohrm.storyline.users.actors.{UserRepository, CrudUser}
 
 import scala.concurrent.duration.FiniteDuration
@@ -12,6 +12,7 @@ import scala.concurrent.duration.FiniteDuration
 
 trait UserContext {
   self: ActorContext
+    with FutureContext
     with JdbcContext
   =>
 

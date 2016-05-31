@@ -76,7 +76,7 @@ trait HttpHandler {
 object Application
   extends App
   with Injector
-  with H2Support
+  with PostgresSupport
   with UserContext
   with Routes
   with HttpHandler
