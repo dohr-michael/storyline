@@ -1,5 +1,6 @@
 package org.dohrm.toolkit.utils
 
+import com.github.tototoshi.slick.{PostgresJodaSupport, GenericJodaSupport}
 import org.dohrm.toolkit.actor.response.{InvalidRequestError, ExceptionError, Error}
 import org.dohrm.toolkit.context.{ConfigContext, JdbcConfig, JdbcContext}
 import org.postgresql.util.PSQLException
@@ -24,6 +25,9 @@ trait PostgresSupport extends JdbcContext {
   )
 
   override implicit lazy val jdbcConfig: JdbcConfig = new JdbcConfig {
+
+    override val jodaSupport: GenericJodaSupport = PostgresJodaSupport
+
     override def db: JdbcBackend.DatabaseDef = lazyDb
 
     override val driver: JdbcProfile = slick.driver.PostgresDriver

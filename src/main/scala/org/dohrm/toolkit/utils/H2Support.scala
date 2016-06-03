@@ -1,5 +1,6 @@
 package org.dohrm.toolkit.utils
 
+import com.github.tototoshi.slick.{H2JodaSupport, GenericJodaSupport}
 import org.dohrm.toolkit.context.{ConfigContext, JdbcConfig, JdbcContext}
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend
@@ -18,6 +19,9 @@ trait H2Support extends JdbcContext {
   )
 
   override implicit lazy val jdbcConfig: JdbcConfig = new JdbcConfig {
+
+    override val jodaSupport: GenericJodaSupport = H2JodaSupport
+
     override def db: JdbcBackend.DatabaseDef = lazyDb
 
     override val driver: JdbcProfile = slick.driver.H2Driver

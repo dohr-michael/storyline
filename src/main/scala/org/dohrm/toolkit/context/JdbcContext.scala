@@ -1,5 +1,6 @@
 package org.dohrm.toolkit.context
 
+import com.github.tototoshi.slick.GenericJodaSupport
 import org.dohrm.toolkit.actor.response.{ExceptionError, Error}
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend.DatabaseDef
@@ -10,6 +11,7 @@ import slick.jdbc.JdbcBackend.DatabaseDef
   */
 trait JdbcConfig {
 
+  val jodaSupport: GenericJodaSupport
   val driver: JdbcProfile
 
   def db: DatabaseDef
@@ -24,5 +26,4 @@ trait JdbcConfig {
 trait JdbcContext {
 
   implicit val jdbcConfig: JdbcConfig
-
 }

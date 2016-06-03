@@ -2,8 +2,9 @@ package org.dohrm.storyline.users.actors
 
 import org.dohrm.storyline.users.models.{User, UserDatabase}
 import org.dohrm.toolkit.actor.JdbcActor
-import org.dohrm.toolkit.actor.response.Response
+import org.dohrm.toolkit.actor.response.{InvalidRequestError, Response}
 import org.dohrm.toolkit.context.JdbcConfig
+import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext
 
@@ -13,6 +14,10 @@ case object FindAll
 case class FindById(id: String)
 
 case class Create(user: User)
+
+case class Update(id: String, user: User)
+
+case class Delete(id: String)
 
 class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: ExecutionContext) extends JdbcActor with UserDatabase {
 
@@ -27,7 +32,7 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
     db.run(
       DBIO.seq(
         users.schema.create,
-        users += User("dohr.michael@gmail.com", "Michael", "DOHR", "Michael DOHR")
+        users += User("dohr.michael@gmail.com", "Michael", "DOHR", "Michael DOHR", DateTime.now, None)
       )
     ).map(_ => println("end init"))
   }
@@ -62,5 +67,7 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
       create(user)
     case message: Any =>
       sender ! message
+    case _ =>
+      sender ! Response.failed(InvalidRequestError(Seq("unknown")))
   }
 }
