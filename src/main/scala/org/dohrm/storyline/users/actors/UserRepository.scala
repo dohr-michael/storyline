@@ -1,8 +1,8 @@
 package org.dohrm.storyline.users.actors
 
-import akka.actor.ActorRef
 import org.dohrm.storyline.users.models.{User, UserDatabase}
-import org.dohrm.toolkit.actor.{DatabaseActor, NotFoundError}
+import org.dohrm.toolkit.actor.JdbcActor
+import org.dohrm.toolkit.actor.response.Response
 import org.dohrm.toolkit.context.JdbcConfig
 
 import scala.concurrent.ExecutionContext
@@ -12,13 +12,14 @@ case object FindAll
 
 case class FindById(id: String)
 
+case class Create(user: User)
 
-class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: ExecutionContext) extends DatabaseActor with UserDatabase {
+class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: ExecutionContext) extends JdbcActor with UserDatabase {
 
   import jdbcConfig._
   import driver.api._
 
-  val users: TableQuery[Users] = TableQuery[Users]
+  implicit val users: TableQuery[Users] = TableQuery[Users]
 
   @throws[Exception](classOf[Exception])
   override def preStart(): Unit = {
@@ -32,26 +33,24 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
   }
 
   def findAll: Unit = {
-    exec(users.result) { users =>
-      users
-    }
+    execAndForwardToSender(
+      users.result
+    )(users => Response(users))
   }
 
   def findById(id: String): Unit = {
-    exec(
+    execAndForwardToSender(
       (for {
         u <- users if u.id === id
       } yield u).result
-    ) { users =>
-      users.headOption
-    }
+    )(users => Response.ofOpt(users.headOption))
   }
 
   def create(user: User): Unit = {
-    exec(
-      users.forceInsert(user)
-    ) { result =>
-    }
+    println(user)
+    execAndForwardToSender {
+      (users returning users) += user
+    }(result => Response(result))
   }
 
   override def receive: Receive = {
@@ -59,6 +58,8 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
       findAll
     case FindById(id) =>
       findById(id)
+    case Create(user) =>
+      create(user)
     case message: Any =>
       sender ! message
   }

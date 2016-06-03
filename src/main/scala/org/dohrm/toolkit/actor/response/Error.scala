@@ -1,7 +1,4 @@
-package org.dohrm.toolkit.actor
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+package org.dohrm.toolkit.actor.response
 
 trait Error
 

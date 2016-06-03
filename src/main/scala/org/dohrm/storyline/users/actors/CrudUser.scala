@@ -23,7 +23,7 @@ class CrudUser extends CrudActor[User] with ActorLogging {
   }
 
   override protected def create(entity: User): Unit = {
-    forwardToRepository(User("admin", "admin", "Super", "Admin"))
+    forwardToRepository(Create(entity))
   }
 
   override protected def update(id: String, entity: User): Unit = {

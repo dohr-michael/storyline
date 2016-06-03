@@ -1,16 +1,14 @@
 package org.dohrm.toolkit.actor
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
+import org.dohrm.toolkit.actor.response.{Response, UnknownError}
 
 import scala.reflect.ClassTag
 
 
-case object FindAll
+case object GetAll
 
-
-case object All
-
-case class One(id: String)
+case class GetOne(id: String)
 
 case class Create[A](entity: A)
 
@@ -32,14 +30,20 @@ abstract class CrudActor[A: ClassTag] extends Actor {
   protected def delete(id: String): Unit
 
   protected def withClass(entity: Any)(fn: A => Unit): Unit = {
-    implicitly[ClassTag[A]].unapply(entity).fold(sender ! UnknownError) { entity =>
-      fn(entity)
-    }
+    implicitly[ClassTag[A]]
+      .unapply(entity)
+      .fold(
+        sender ! Response.failed[A](UnknownError)
+      ) { entity =>
+        fn(entity)
+      }
   }
 
   override def receive: Receive = {
-    case All => all
-    case One(id) => one(id)
+    case GetAll =>
+      all
+    case GetOne(id) =>
+      one(id)
     case Create(entity) =>
       withClass(entity) { entity =>
         create(entity)
@@ -48,6 +52,7 @@ abstract class CrudActor[A: ClassTag] extends Actor {
       withClass(entity) { entity =>
         update(id, entity)
       }
-    case Delete(id: String) => delete(id)
+    case Delete(id: String) =>
+      delete(id)
   }
 }

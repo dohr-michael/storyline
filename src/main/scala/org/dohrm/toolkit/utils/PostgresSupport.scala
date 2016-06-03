@@ -1,6 +1,8 @@
 package org.dohrm.toolkit.utils
 
+import org.dohrm.toolkit.actor.response.{InvalidRequestError, ExceptionError, Error}
 import org.dohrm.toolkit.context.{ConfigContext, JdbcConfig, JdbcContext}
+import org.postgresql.util.PSQLException
 import slick.driver.JdbcProfile
 import slick.jdbc.JdbcBackend
 
@@ -25,6 +27,14 @@ trait PostgresSupport extends JdbcContext {
     override def db: JdbcBackend.DatabaseDef = lazyDb
 
     override val driver: JdbcProfile = slick.driver.PostgresDriver
+
+    override def exceptionToErrorMapper: PartialFunction[Throwable, Error] = {
+      case e: PSQLException if e.getServerErrorMessage.getSQLState == "23505"=>
+        InvalidRequestError(Seq(s"${e.getServerErrorMessage.getTable.toLowerCase}.unique_violation"))
+      case e: PSQLException =>
+        println(e.getServerErrorMessage)
+        ExceptionError(e)
+    }
   }
 
 }

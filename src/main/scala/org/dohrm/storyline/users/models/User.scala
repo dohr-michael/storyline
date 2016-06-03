@@ -5,9 +5,10 @@ import spray.json.RootJsonFormat
 
 /**
   * User
-  * @param id user id (correspond to the email.)
-  * @param firstName user first name.
-  * @param lastName user last name.
+  *
+  * @param id          user id (correspond to the email.)
+  * @param firstName   user first name.
+  * @param lastName    user last name.
   * @param displayName user display name
   */
 case class User(id: String, firstName: String, lastName: String, displayName: String)
@@ -19,6 +20,9 @@ object UserJson {
 
   import spray.json.DefaultJsonProtocol._
 
+  /**
+    * Format.
+    */
   val format: RootJsonFormat[User] = jsonFormat4(User)
 }
 
@@ -28,7 +32,11 @@ trait UserDatabase {
 
   import jdbcConfig.driver.api._
 
+  /**
+    * User database request
+    */
   class Users(tag: Tag) extends Table[User](tag, "USERS") {
+
     def id = column[String]("USER_ID", O.PrimaryKey)
 
     def firstName = column[String]("USER_FIRST_NAME")
