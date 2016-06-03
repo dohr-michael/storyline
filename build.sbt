@@ -22,6 +22,7 @@ libraryDependencies ++= {
     "com.github.tototoshi" %% "slick-joda-mapper" % slickJodaMapperVersion,
     "joda-time" % "joda-time" % "2.7",
     "org.joda" % "joda-convert" % "1.7",
+    "ch.qos.logback" % "logback-classic" % "1.1.7",
     "com.typesafe.slick" %% "slick" % slickV,
     "org.postgresql" % "postgresql" % postgressV,
     "com.h2database" % "h2" % h2V,

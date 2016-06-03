@@ -8,26 +8,16 @@ import scala.reflect.ClassTag
 
 case object GetAll
 
-case class GetOne(id: String)
+case class GetOne[ID](id: ID)
 
 case class Create[A](entity: A)
 
-case class Update[A](id: String, entity: A)
+case class Update[A, ID](id: ID, entity: A)
 
-case class Delete(id: String)
+case class Delete[ID](id: ID)
 
 
-abstract class CrudActor[A: ClassTag] extends Actor {
-
-  protected def all: Unit
-
-  protected def one(id: String): Unit
-
-  protected def create(entity: A): Unit
-
-  protected def update(id: String, entity: A): Unit
-
-  protected def delete(id: String): Unit
+abstract class ModelRepositoryActor[A: ClassTag, ID] extends Actor {
 
   protected def withClass(entity: Any)(fn: A => Unit): Unit = {
     implicitly[ClassTag[A]]
@@ -39,20 +29,30 @@ abstract class CrudActor[A: ClassTag] extends Actor {
       }
   }
 
+  protected def all: Unit
+
+  protected def one(id: ID): Unit
+
+  protected def create(entity: A): Unit
+
+  protected def update(id: ID, entity: A): Unit
+
+  protected def delete(id: ID): Unit
+
   override def receive: Receive = {
     case GetAll =>
       all
-    case GetOne(id) =>
+    case GetOne(id: ID) =>
       one(id)
     case Create(entity) =>
       withClass(entity) { entity =>
         create(entity)
       }
-    case Update(id: String, entity) =>
+    case Update(id: ID, entity) =>
       withClass(entity) { entity =>
         update(id, entity)
       }
-    case Delete(id: String) =>
+    case Delete(id: ID) =>
       delete(id)
   }
 }

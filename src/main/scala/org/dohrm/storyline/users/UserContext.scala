@@ -4,8 +4,8 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.Props
 import akka.pattern.BackoffSupervisor
-import org.dohrm.toolkit.context.{FutureContext, ActorContext, JdbcContext}
-import org.dohrm.storyline.users.actors.{UserRepository, CrudUser}
+import org.dohrm.storyline.users.actors.UserRepository
+import org.dohrm.toolkit.context.{ActorContext, FutureContext, JdbcContext}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -16,11 +16,9 @@ trait UserContext {
     with JdbcContext
   =>
 
-  val userRepositoryActor = as.actorOf(Props.apply(new UserRepository()), "user-repository")
-
-  val userActor = as.actorOf(
+  val userRepositoryActor = as.actorOf(
     BackoffSupervisor.props(
-      Props[CrudUser],
+      Props(new UserRepository),
       "crud-user",
       FiniteDuration(3, TimeUnit.SECONDS),
       FiniteDuration(30, TimeUnit.SECONDS),

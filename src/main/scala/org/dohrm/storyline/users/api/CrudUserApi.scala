@@ -12,5 +12,5 @@ import scala.concurrent.ExecutionContext
   * @author michaeldohr
   * @since 28/05/16
   */
-class CrudUserApi(actorRef: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout, format: RootJsonFormat[User] = UserJson.format)
+class CrudUserApi(actorRef: ActorRef)(implicit ec: ExecutionContext, timeout: Timeout, format: RootJsonFormat[User] = UserJson.userFormat)
   extends CrudApi[User](actorRef)

@@ -31,7 +31,7 @@ object UserJson {
   /**
     * Format.
     */
-  val format: RootJsonFormat[User] =
+  implicit val userFormat: RootJsonFormat[User] =
     jsonFormat6(User)
       .beforeRead(default("creationDate" -> DateTime.now))
 }
