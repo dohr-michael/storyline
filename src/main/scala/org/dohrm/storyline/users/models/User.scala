@@ -19,7 +19,7 @@ case class UserWithGrants(id: String,
                           locale: String,
                           creationDate: DateTime = DateTime.now,
                           lastConnectionDate: Option[DateTime] = None,
-                          grants: Seq[String] = Seq.empty) extends SecurityUser[String]
+                          grants: Seq[String] = Seq.empty) extends SecurityUser
 
 object UserWithGrants {
 

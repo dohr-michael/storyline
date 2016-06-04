@@ -5,11 +5,12 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directive1, Route}
 import akka.pattern.ask
 import akka.util.Timeout
 import org.dohrm.toolkit.actor._
 import org.dohrm.toolkit.actor.response._
+import org.dohrm.toolkit.security.models.SecurityUser
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 import scala.collection.immutable
@@ -110,31 +111,36 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
 }
 
 
-abstract class CrudApi[A: ClassTag](val actorRef: ActorRef)
-                                   (implicit ec: ExecutionContext, timeout: Timeout, entityFormat: RootJsonFormat[A]) extends RestApi {
+abstract class CrudApi[A: ClassTag, SU <: SecurityUser](val actorRef: ActorRef)
+                                                       (implicit ec: ExecutionContext,
+                                                        timeout: Timeout,
+                                                        entityFormat: RootJsonFormat[A],
+                                                        withGrants: Directive1[SU]) extends RestApi {
 
   private lazy val lazyRoutes: Route =
-    path(Segment) { id =>
-      get {
-        complete((actorRef ? GetOne(id)).to[A])
-      } ~
-        put {
-          entity(as[A]) { item =>
-            complete((actorRef ? Update(id, item)).to[A])
-          }
+    withGrants { su =>
+      path(Segment) { id =>
+        get {
+          complete((actorRef ? GetOne(id, Some(su))).to[A])
         } ~
-        delete {
-          complete((actorRef ? Delete(id)).toUnit)
-        }
-    } ~
-      get {
-        complete((actorRef ? GetAll).to[Seq[A]])
+          put {
+            entity(as[A]) { item =>
+              complete((actorRef ? Update(id, item, Some(su))).to[A])
+            }
+          } ~
+          delete {
+            complete((actorRef ? Delete(id, Some(su))).toUnit)
+          }
       } ~
-      post {
-        entity(as[A]) { item =>
-          complete((actorRef ? Create(item)).to[A])
+        get {
+          complete((actorRef ? GetAll(Some(su))).to[Seq[A]])
+        } ~
+        post {
+          entity(as[A]) { item =>
+            complete((actorRef ? Create(item)).to[A])
+          }
         }
-      }
+    }
 
   def routes: Route = lazyRoutes
 }

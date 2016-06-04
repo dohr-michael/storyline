@@ -1,7 +1,7 @@
 package org.dohrm.toolkit.security.models
 
 
-trait SecurityUser[ID] {
-  def id: ID
+trait SecurityUser {
+  def id: String
   def grants: Seq[String]
 }

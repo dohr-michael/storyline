@@ -30,7 +30,7 @@ trait Routes {
 
   import akka.http.scaladsl.server.Directives._
 
-  val crudUserApi = new CrudUserApi(userRepositoryActor, authorized)
+  val crudUserApi = new CrudUserApi(userRepositoryActor)
 
   val routes: Route =
     path("healthcheck") {

@@ -15,7 +15,7 @@ object Response {
 
   def ofOpt[A](opt: Option[A]): Response[A] = opt.fold(failed[A](NotFoundError()))(unit)
 
-  def sequence[A](serviceResults: Seq[Response[A]]): Response[Seq[A]] = serviceResults.foldLeft(Response.unit(Seq.empty[A])){ (acc, cur) =>
+  def sequence[A](serviceResults: Seq[Response[A]]): Response[Seq[A]] = serviceResults.foldLeft(Response.unit(Seq.empty[A])) { (acc, cur) =>
     for {
       a <- acc
       c <- cur
@@ -50,13 +50,15 @@ sealed trait Response[A] {
 
   /**
     * Applies the function to the underlying object. Doesn't apply if Negative.
+    *
     * @param f the function to apply
     */
   def flatMap[B](f: A => Response[B]): Response[B] = cause.fold[Response[B]](f(get))(e => Negative(e))
 
   /**
     * Applies fn to the underlying object and if no object, returns Default
-    * @param fn the function to apply
+    *
+    * @param fn      the function to apply
     * @param default the default value
     */
   def fold[B](default: response.Error => B)(fn: A => B): B = {
@@ -65,6 +67,7 @@ sealed trait Response[A] {
 
   /**
     * Applies fn to the underlying object. fn returns a Future.
+    *
     * @param fn the function to apply
     */
   def flatMapF[B](fn: A => Future[Response[B]]): Future[Response[B]] = {
@@ -73,6 +76,7 @@ sealed trait Response[A] {
 
   /**
     * Applies fn to the underlying object. fn returns a Future.
+    *
     * @param fn the function to apply
     */
   def mapF[B](fn: A => Future[B])(implicit ec: ExecutionContext): Future[Response[B]] = {
@@ -81,6 +85,7 @@ sealed trait Response[A] {
 
   /**
     * Zip two Responses
+    *
     * @param other the other Responses
     * @tparam B the type of the other Response
     * @return zipped Response
@@ -89,6 +94,7 @@ sealed trait Response[A] {
 
   /**
     * Filters the Response
+    *
     * @param p the predicate
     * @return filtered Response
     */
@@ -97,6 +103,7 @@ sealed trait Response[A] {
 
   /**
     * Collects the service result
+    *
     * @param pf the partialfunction
     * @tparam B the type of return
     * @return collected Response
@@ -105,11 +112,17 @@ sealed trait Response[A] {
 
   /**
     * Flattens the two Responses
+    *
     * @param ev evidence
     * @tparam B type of the evidence
     * @return flattened Response
     */
   def flatten[B](implicit ev: A <:< Response[B]): Response[B] = cause.fold(ev(get))(e => Response.failed(e))
+
+  def recover[B >: A](f: PartialFunction[Error, B]): Response[A] = {
+    cause.foreach(f)
+    this
+  }
 }
 
 case class Positive[A](answer: A, explanation: Option[Explanation] = None) extends Response[A] {
