@@ -6,13 +6,15 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directive1, Route}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
+import org.dohrm.auth0.Auth0Context
 import org.dohrm.toolkit.context.{ActorContext, ConfigContext, FutureContext}
 import org.dohrm.storyline.users.UserContext
 import org.dohrm.storyline.users.api.CrudUserApi
+import org.dohrm.toolkit.security.models.SecurityUser
 import org.dohrm.toolkit.utils.{H2Support, PostgresSupport}
 import slick.driver.JdbcProfile
 
@@ -21,13 +23,14 @@ import scala.concurrent.ExecutionContext
 
 trait Routes {
   self: FutureContext
+    with Auth0Context
     with ActorContext
     with UserContext
   =>
 
   import akka.http.scaladsl.server.Directives._
 
-  val crudUserApi = new CrudUserApi(userRepositoryActor)
+  val crudUserApi = new CrudUserApi(userRepositoryActor, authorized)
 
   val routes: Route =
     path("healthcheck") {
@@ -77,6 +80,7 @@ object Application
   extends App
   with Injector
   with PostgresSupport
+  with Auth0Context
   with UserContext
   with Routes
   with HttpHandler

@@ -1,17 +1,16 @@
 package org.dohrm.storyline.users.actors
 
 import akka.actor.ActorLogging
-import org.dohrm.storyline.users.models.{User, UserDatabase}
+import org.dohrm.storyline.users.models.{User, UserDatabase, UserWithGrants}
 import org.dohrm.toolkit.actor.response.Response
 import org.dohrm.toolkit.actor.{JdbcActor, ModelRepositoryActor}
 import org.dohrm.toolkit.context.JdbcConfig
 
 import scala.concurrent.ExecutionContext
 
-/**
-  * @author michaeldohr
-  * @since 28/05/16
-  */
+
+case class GetWithGrants(user: User)
+
 class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: ExecutionContext)
   extends ModelRepositoryActor[User, String]
     with JdbcActor
@@ -22,6 +21,16 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
   import driver.api._
 
   implicit val users: TableQuery[Users] = TableQuery[Users]
+
+
+  @throws[Exception](classOf[Exception])
+  override def preStart(): Unit = {
+    db.run(
+      DBIO.seq(
+        users.schema.create
+      )
+    ).map(_ => println("end init user"))
+  }
 
   override protected def all: Unit = {
     execAndForwardToSender(
@@ -51,8 +60,14 @@ class UserRepository(implicit override val jdbcConfig: JdbcConfig, ec: Execution
     // forwardToRepository(Delete(id))
   }
 
+  protected def getWithGrants(user: User): Unit = {
+    // TODO write upsert in database.
+    sender ! Response.unit(UserWithGrants.from(user))
+  }
+
   override def receive: Receive =
     super.receive orElse {
-      case _ =>
+      case GetWithGrants(user) =>
+        getWithGrants(user)
     }
 }

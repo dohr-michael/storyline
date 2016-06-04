@@ -20,6 +20,8 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-experimental" % akkaV,
     "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaV,
     "com.github.tototoshi" %% "slick-joda-mapper" % slickJodaMapperVersion,
+    "com.auth0" % "java-jwt" % "2.1.0",
+    "commons-codec" % "commons-codec" % "1.4",
     "joda-time" % "joda-time" % "2.7",
     "org.joda" % "joda-convert" % "1.7",
     "ch.qos.logback" % "logback-classic" % "1.1.7",

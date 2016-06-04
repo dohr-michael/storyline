@@ -113,7 +113,7 @@ trait RestApi extends DefaultJsonProtocol with SprayJsonSupport {
 abstract class CrudApi[A: ClassTag](val actorRef: ActorRef)
                                    (implicit ec: ExecutionContext, timeout: Timeout, entityFormat: RootJsonFormat[A]) extends RestApi {
 
-  val routes: Route =
+  private lazy val lazyRoutes: Route =
     path(Segment) { id =>
       get {
         complete((actorRef ? GetOne(id)).to[A])
@@ -135,4 +135,6 @@ abstract class CrudApi[A: ClassTag](val actorRef: ActorRef)
           complete((actorRef ? Create(item)).to[A])
         }
       }
+
+  def routes: Route = lazyRoutes
 }
